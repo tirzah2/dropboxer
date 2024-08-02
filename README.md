@@ -1,4 +1,6 @@
 
+Hi! 
+This is DMkal! If you like my little modules, please offer me a coffee, I would appreciate that a lot and motivate me to do many more modules and quality of life tools! Thank you very much! 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D210UKH9)  
 
 
