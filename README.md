@@ -18,6 +18,8 @@ https://github.com/user-attachments/assets/19b06d17-85ff-4573-a8dc-b1bfd7183530
 <li><strong>File Linking</strong>: Easily link Dropbox images to tiles in Foundry applications.</li>
   <li><strong> New
   Create bulk playlists from multi select files on Dropbox</li></strong>
+    <img width="506" alt="chrome_743iPJKxu1" src="https://github.com/user-attachments/assets/0bba463a-fd28-40bf-8dc5-a6d441acece3">
+
 <li><strong>User-Friendly Interface</strong>: The module adds a convenient button to the Scenes sidebar and relevant UI elements for seamless Dropbox integration.</li>
 </ul>
 <h2>Installation</h2>
