@@ -1,0 +1,212 @@
+// Load Dropbox SDK dynamically
+const script = document.createElement('script');
+script.src = "https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js";
+document.head.appendChild(script);
+
+script.onload = () => {
+  console.log("Dropbox SDK loaded.");
+
+  // Load and render the template before initializing the Dropbox browser
+  async function loadTemplateAndInitialize() {
+    const templatePath = "modules/dropboxer/templates/dropbox-browser.hbs";
+    const html = await renderTemplate(templatePath);
+  
+    // Create a dialog to hold the template content
+    new Dialog({
+      title: "Dropbox Browser",
+      content: html,
+      buttons: {
+        close: {
+          label: "Close",
+          callback: () => {}
+        }
+      },
+      render: async function () {
+        // Initialize Dropbox Browser after the dialog is rendered
+        await initializeDropboxBrowser();
+      },
+      // Set the dialog dimensions
+      options: {
+        width: 780,
+        height: 500
+      }
+    }).render(true, {height: 500, width: 780, resizable: true});
+  }
+  
+  // Define a function to browse Dropbox files
+  async function fetchDropboxContents(path = '/gogots') {
+    const dropbox = new Dropbox.Dropbox({ accessToken: 'sl.u.AFIXgP7Q-FHvHK5CAMvzrv9g4IGrz2UAG_1lJVy1zCzaqVbBxz-yXVfwkIY26r6wLrpLJFM7hdLJE-MAfww9wuYx9JPO0aMS9MqOxoA7aUUEZEhgAhhOAQe5s4mlB--l4tAKrLIVbEmrC75TtlZlBN_bsLoH_RvNb7w7KquVSljpG1oCiCM2_-jjz439FE_bzibL2Ovo7gYHB85cgVGNom9Dq6uv3yaRtTluuZ6x42RZW_cBFM05Jpxz81TxYxRAXjsTHQsIZ3etvE-7MBBi-R0uj_JivqRGXO4bISnDbWoU8wgtxk-xKNePJquDb3bHa8F99Dmej1Ev5cdISk9pwpS7hUCQ4XGJqo02s2FPClYKIB_6VvDWJzK7qV_gg41ACjCRuUsh5jKyNaLXhI7NmL0W2R_Uu48hS7vQwSLkHu2-nZS_bfHWRRFdFvbN-3CK6kjXBShoSvqPE-zbHO9rFvAs5DnKV0oLRQf-GKTpWHM12nhvlSZhARUV0ldl-TlOLZL0ovXP9uPI2STvdHZygAUMoaGUS8o0kTLH_2ZOoI1LVFaouOLzh-hVMexiY1UwFTzXTfDTxFVfZDVWwDPc4sjtekhVaCQJM-jc7p2zaLiBLOyC-RwAEAZwGA-dYTyhIVC8sXKQzrxKmOSo1aY-QO7oNEAjb5Nna_d8dO80e9ZLxk-5_5doD3Ux0ke-Lru3Uyy6YaUCN6FctHVWtBTexjJpDpFZ55KgPhatWt4tEdo7qc0T1WLLsW6xUJwq2Lw3rlInfjECjmTlRRp-0Onmc3SUHj5PTV_zs-fDdwHtSxXUUKiv_s9Ur5FN39ZeT30eTulbE30a9mp28fq8uhNEOLtzTGx1M7SO0eDDg_4HlbYKVUxAZKh0V76Ed_M7kzoiIC4CY8dOTZDo_C6BoF3w1EuVZgR0ZAblnB-085lBciAhGvrt2OuIe_WY5RhBMVtirsjR09XJ86ipoykbHTyjLNfulalZy88dw1WWjBkcGEikCMFQcFa_dVtC9tvWyGF3eo7tS9FtpGXlG8BoDycLExTmGiRvqH-V7E8wV-4qh-wOBAiIU26xPtRMBCoSXgIsPzbR4Zweb_CT78zt6JRaGePo3zeRzUMiKDRcPXfLywx2BHr2WBrRbsRlq7KhjhsOt-roiduzXBVZO1TRx0hRZyatWJqniNCfh-BM6VoKD3JKnO5BqvzgJniK0XmzdbH6nRSH75OTmg_ECE6ODnAxYlk2fHbYxynIGrY5gHlH8OLAK3jwKGpVcMAxA3rL8ddVedRLAlY5cnEd33t2jpstEas-DRocycni0I1sVN6qUQyBeA' });
+
+ 
+    try {
+      console.log(`Fetching contents for path: ${path}`);
+      const response = await dropbox.filesListFolder({ path: path });
+      console.log("Dropbox API Response:", response.result.entries);
+      return response.result.entries;
+    } catch (error) {
+      console.error('Error accessing Dropbox:', error.message || error);
+      if (error.status === 401) {
+        alert('Unauthorized: Please check your access token.');
+      }
+      return [];
+    }
+  }
+
+  // Initialize the Dropbox browser
+  async function initializeDropboxBrowser() {
+    const rootContents = await fetchDropboxContents();
+  
+    if (rootContents.length > 0) {
+      console.log('Root contents:', rootContents);
+      renderFolderTree(rootContents, '#folderTree');
+      displayFolderContents(rootContents);
+    } else {
+      console.error('No contents available or unauthorized access.');
+    }
+  
+    // Click handler for folders
+    const folderTree = document.querySelector('#folderTree');
+    if (folderTree) {
+      folderTree.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('folder-item')) {
+          const folderPath = event.target.dataset.path;
+          console.log(`Clicked folder: ${folderPath}`);
+          const folderContents = await fetchDropboxContents(folderPath);
+  
+          // Display subfolders and images
+          renderFolderTree(folderContents, '#folderTree');
+          displayFolderContents(folderContents);
+  
+          // Update the current folder path (for the back button)
+          currentFolderPath = folderPath;
+        }
+      });
+    } else {
+      console.error('Folder tree container not found.');
+    }
+  }
+  
+
+  // Render the folder tree
+  function renderFolderTree(contents, containerSelector) {
+    const container = document.querySelector(containerSelector);
+    if (!container) {
+      console.error('Container for folder tree not found.');
+      return;
+    }
+    console.log('Rendering folder tree:', contents);
+    container.innerHTML = '';
+
+    contents.forEach(item => {
+      if (item['.tag'] === 'folder') {
+        const folderElement = document.createElement('div');
+        folderElement.classList.add('folder-item');
+        folderElement.dataset.path = item.path_lower;
+        folderElement.innerText = item.name;
+
+        container.appendChild(folderElement);
+      }
+    });
+  }
+
+  let currentFolderPath = '';
+
+async function initializeDropboxBrowser() {
+  const rootContents = await fetchDropboxContents();
+
+  if (rootContents.length > 0) {
+    console.log('Root contents:', rootContents);
+    renderFolderTree(rootContents, '#folderTree');
+    displayFolderContents(rootContents);
+    currentFolderPath = ''; // Root path
+  } else {
+    console.error('No contents available or unauthorized access.');
+  }
+
+  // Click handler for folders
+  const folderTree = document.querySelector('#folderTree');
+  if (folderTree) {
+    folderTree.addEventListener('click', async (event) => {
+      if (event.target.classList.contains('folder-item')) {
+        const folderPath = event.target.dataset.path;
+        console.log(`Clicked folder: ${folderPath}`);
+        const folderContents = await fetchDropboxContents(folderPath);
+
+        // Display subfolders and images
+        renderFolderTree(folderContents, '#folderTree');
+        displayFolderContents(folderContents);
+
+        // Update the current folder path and show the back button
+        currentFolderPath = folderPath;
+        document.getElementById('backButton').style.display = 'inline-block';
+      }
+    });
+  } else {
+    console.error('Folder tree container not found.');
+  }
+
+  // Back button handler
+  const backButton = document.getElementById('backButton');
+  if (backButton) {
+    backButton.addEventListener('click', async () => {
+      // Go up one directory level
+      const parentFolderPath = currentFolderPath.substring(0, currentFolderPath.lastIndexOf('/'));
+      const folderContents = await fetchDropboxContents(parentFolderPath);
+
+      // Display subfolders and images
+      renderFolderTree(folderContents, '#folderTree');
+      displayFolderContents(folderContents);
+
+      // Update the current folder path
+      currentFolderPath = parentFolderPath;
+
+      // Hide the back button if we are at the root level
+      if (!currentFolderPath) {
+        backButton.style.display = 'none';
+      }
+    });
+  }
+}
+
+  // Display files with thumbnails in the image viewer
+  async function displayFolderContents(contents) {
+    const imageContainer = document.querySelector('#imageViewer');
+    if (!imageContainer) {
+      console.error('Image viewer container not found.');
+      return;
+    }
+    imageContainer.innerHTML = '';
+
+    // Filter out image files and prepare for thumbnail retrieval
+    const imageFiles = contents.filter(item => item['.tag'] === 'file' && item.name.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+    if (imageFiles.length === 0) return;
+
+    // Prepare the batch thumbnail request
+    const dropbox = new Dropbox.Dropbox({ accessToken: 'sl.u.AFIXgP7Q-FHvHK5CAMvzrv9g4IGrz2UAG_1lJVy1zCzaqVbBxz-yXVfwkIY26r6wLrpLJFM7hdLJE-MAfww9wuYx9JPO0aMS9MqOxoA7aUUEZEhgAhhOAQe5s4mlB--l4tAKrLIVbEmrC75TtlZlBN_bsLoH_RvNb7w7KquVSljpG1oCiCM2_-jjz439FE_bzibL2Ovo7gYHB85cgVGNom9Dq6uv3yaRtTluuZ6x42RZW_cBFM05Jpxz81TxYxRAXjsTHQsIZ3etvE-7MBBi-R0uj_JivqRGXO4bISnDbWoU8wgtxk-xKNePJquDb3bHa8F99Dmej1Ev5cdISk9pwpS7hUCQ4XGJqo02s2FPClYKIB_6VvDWJzK7qV_gg41ACjCRuUsh5jKyNaLXhI7NmL0W2R_Uu48hS7vQwSLkHu2-nZS_bfHWRRFdFvbN-3CK6kjXBShoSvqPE-zbHO9rFvAs5DnKV0oLRQf-GKTpWHM12nhvlSZhARUV0ldl-TlOLZL0ovXP9uPI2STvdHZygAUMoaGUS8o0kTLH_2ZOoI1LVFaouOLzh-hVMexiY1UwFTzXTfDTxFVfZDVWwDPc4sjtekhVaCQJM-jc7p2zaLiBLOyC-RwAEAZwGA-dYTyhIVC8sXKQzrxKmOSo1aY-QO7oNEAjb5Nna_d8dO80e9ZLxk-5_5doD3Ux0ke-Lru3Uyy6YaUCN6FctHVWtBTexjJpDpFZ55KgPhatWt4tEdo7qc0T1WLLsW6xUJwq2Lw3rlInfjECjmTlRRp-0Onmc3SUHj5PTV_zs-fDdwHtSxXUUKiv_s9Ur5FN39ZeT30eTulbE30a9mp28fq8uhNEOLtzTGx1M7SO0eDDg_4HlbYKVUxAZKh0V76Ed_M7kzoiIC4CY8dOTZDo_C6BoF3w1EuVZgR0ZAblnB-085lBciAhGvrt2OuIe_WY5RhBMVtirsjR09XJ86ipoykbHTyjLNfulalZy88dw1WWjBkcGEikCMFQcFa_dVtC9tvWyGF3eo7tS9FtpGXlG8BoDycLExTmGiRvqH-V7E8wV-4qh-wOBAiIU26xPtRMBCoSXgIsPzbR4Zweb_CT78zt6JRaGePo3zeRzUMiKDRcPXfLywx2BHr2WBrRbsRlq7KhjhsOt-roiduzXBVZO1TRx0hRZyatWJqniNCfh-BM6VoKD3JKnO5BqvzgJniK0XmzdbH6nRSH75OTmg_ECE6ODnAxYlk2fHbYxynIGrY5gHlH8OLAK3jwKGpVcMAxA3rL8ddVedRLAlY5cnEd33t2jpstEas-DRocycni0I1sVN6qUQyBeA' });
+    const thumbnailRequests = imageFiles.map(file => ({
+      path: file.path_lower,
+      size: 'w256h256'
+    }));
+
+    try {
+      const thumbnailResponse = await dropbox.filesGetThumbnailBatch({ entries: thumbnailRequests });
+      console.log("Thumbnail Batch Response:", thumbnailResponse);
+
+      thumbnailResponse.result.entries.forEach(entry => {
+        if (entry.metadata && entry.thumbnail) {
+          const imgElement = document.createElement('img');
+          imgElement.src = `data:image/jpeg;base64,${entry.thumbnail}`;
+          imgElement.alt = entry.metadata.name;
+          imageContainer.appendChild(imgElement);
+        }
+      });
+    } catch (error) {
+      console.error('Error retrieving thumbnails:', error.message || error);
+    }
+  }
+
+  // Register the console command to open Dropbox browser
+  window.openDropboxBrowser = loadTemplateAndInitialize;
+
+  console.log("Dropbox browser command registered. Use 'openDropboxBrowser()' in the console.");
+};
