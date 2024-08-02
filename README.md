@@ -10,12 +10,14 @@ https://github.com/user-attachments/assets/19b06d17-85ff-4573-a8dc-b1bfd7183530
 
 <h1>Dropboxer Module for Foundry VTT</h1>
 <h2>Overview</h2>
-<p><strong>Dropboxer</strong> is a Foundry VTT module that integrates Dropbox directly into your game. With this module, Game Masters (GMs) can easily create scenes from images stored in their Dropbox account and link Dropbox images to various elements in their game. This integration streamlines the process of managing and utilizing media files, saving time and effort.</p>
+<p><strong>Dropboxer</strong> is a Foundry VTT module that integrates Dropbox directly into your game. With this module, Game Masters (GMs) can easily create scenes from images stored in their Dropbox account and link Dropbox images to various elements in their game. You can also create playlists using files contained in a Dropbox folder. This integration streamlines the process of managing and utilizing media files, saving time and effort.</p>
 <h2>Features</h2>
 <ul>
 <li><strong>Dropbox Chooser Integration</strong>: Select images directly from your Dropbox account to create scenes within Foundry VTT.</li>
 <li><strong>Scene Creation</strong>: Automatically generate scenes using Dropbox images, with dimensions pulled from the image metadata.</li>
 <li><strong>File Linking</strong>: Easily link Dropbox images to tiles in Foundry applications.</li>
+  <li><strong> New
+  Create bulk playlists from multi select files on Dropbox</li></strong>
 <li><strong>User-Friendly Interface</strong>: The module adds a convenient button to the Scenes sidebar and relevant UI elements for seamless Dropbox integration.</li>
 </ul>
 <h2>Installation</h2>
