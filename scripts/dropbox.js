@@ -266,18 +266,88 @@ function openDropboxChooserForAudio(event, picker) {
   Dropbox.choose(options);
 }
 
+// Function to inject Dropbox button into Playlist Config
+function injectDropboxButtonForPlaylistConfig(html) {
+  const filePickerButton = html.find('button.file-picker[data-type="folder"]');
+  if (filePickerButton.length) {
+    const dropboxButton = $(`<button class="dropbox-folder-picker" title="Choose from Dropbox" tabindex="-1">
+      <i class="fab fa-dropbox"></i>
+    </button>`);
+    
+    // Insert the Dropbox button before the file picker button
+    filePickerButton.before(dropboxButton);
 
-// Add the Dropbox button to the AmbientSoundConfig when it is rendered
-Hooks.on('renderAmbientSoundConfig', (app, html) => {
+    // Add click event to open Dropbox Chooser
+    dropboxButton.on('click', (event) => openDropboxChooserForFolder(event, html));
+  }
+}
+
+// Function to open the Dropbox Chooser for folder selection
+function openDropboxChooserForFolder(event, html) {
   const appKey = game.settings.get('dropboxer', 'dropboxAppKey');
   if (!appKey) {
     ui.notifications.error('Dropbox App Key not set. Please configure it in the module settings.');
     return;
   }
 
-  loadDropboxSDK(appKey);
-  injectDropboxButtonAmbientSound(html);
+  const options = {
+    success: function(files) {
+      console.log('Dropbox folder selected:', files);
+      // Now populate the playlist with these files
+      addTracksToPlaylist(html, files);
+    },
+    cancel: function() {
+      console.log('User canceled the chooser.');
+    },
+    linkType: "direct",  // Use direct link for audio files
+    folderselect: false, // Don't allow folder selection, just files
+    multiselect: true,   // Allow multiple file selection
+    extensions: ['.mp3', '.wav', '.ogg']  // Audio file types
+  };
+
+  Dropbox.choose(options);
+}
+
+// Function to add tracks to the playlist
+async function addTracksToPlaylist(html, files) {
+  // Extract the playlist ID from the main div
+  const playlistId = html.closest('.app.window-app.sheet').attr('id').split('-').pop();
+  console.log('Playlist ID:', playlistId);
+
+  // Get the playlist object using Foundry VTT API
+  const playlist = game.playlists.get(playlistId);
+  if (!playlist) {
+    ui.notifications.error('Playlist not found.');
+    return;
+  }
+
+  // Add each selected file as a new sound in the playlist
+  for (const file of files) {
+    try {
+      const soundData = {
+        name: file.name,
+        path: file.link,
+        playing: false,  // Default to not playing
+        repeat: false,   // Default to not repeating
+        volume: 0.5      // Default volume
+      };
+      await playlist.createEmbeddedDocuments('PlaylistSound', [soundData]);
+      console.log(`Added ${file.name} to the playlist.`);
+    } catch (error) {
+      console.error('Failed to add track:', error);
+      ui.notifications.error(`Failed to add ${file.name} to the playlist.`);
+    }
+  }
+
+  ui.notifications.info('Tracks added to the playlist successfully.');
+}
+
+// Hook to render the Playlist Config and inject the Dropbox button
+Hooks.on('renderPlaylistConfig', (app, html) => {
+  injectDropboxButtonForPlaylistConfig(html);
 });
+
+// Function to load the Dropbox SDK
 function loadDropboxSDK(appKey) {
   if (!document.getElementById('dropboxjs')) {
     const script = document.createElement('script');
@@ -291,3 +361,9 @@ function loadDropboxSDK(appKey) {
     };
   }
 }
+
+// Ensure that Dropbox SDK is loaded at the start
+Hooks.once('init', () => {
+  const appKey = game.settings.get('dropboxer', 'dropboxAppKey');
+  loadDropboxSDK(appKey);
+});
