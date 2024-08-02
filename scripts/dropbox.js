@@ -1,3 +1,8 @@
+// Helper function to transform a Dropbox preview link into a direct link
+function transformToDirectLink(previewLink) {
+  return previewLink.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '');
+}
+
 // Register module settings
 Hooks.once('init', () => {
   game.settings.register('dropboxer', 'dropboxAppKey', {
@@ -63,7 +68,6 @@ Hooks.on('renderFilePicker', (app, html) => {
   injectDropboxButtonToFilePicker(html, app);
 });
 
-
 // Function to inject Dropbox buttons in TileConfig windows
 function injectDropboxButtonToTileConfig(html) {
   const filePicker = html.find('button.file-picker[data-type="imagevideo"]');
@@ -81,7 +85,6 @@ function injectDropboxButtonToTileConfig(html) {
   }
 }
 
-// Function to inject Dropbox buttons in FilePicker windows
 // Function to inject Dropbox buttons in FilePicker windows
 function injectDropboxButtonToFilePicker(html, app) {
   // Select the input field where the URL of the selected file appears
@@ -113,20 +116,22 @@ function openDropboxChooserForFilePicker(event, inputField) {
 
   const options = {
     success: function(files) {
-      const directLink = files[0].link;
+      const previewLink = files[0].link;
+      const directLink = transformToDirectLink(previewLink);
+      console.log('Preview Link:', previewLink);
+      console.log('Direct Link:', directLink);
       inputField.val(directLink);
     },
     cancel: function() {
       console.log('User canceled the chooser.');
     },
-    linkType: "direct",
+    linkType: "preview", // Use "preview" to get the preview link first
     multiselect: false,
     extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
   };
 
   Dropbox.choose(options);
 }
-
 
 // Function to open Dropbox Chooser for TileConfig
 function openDropboxChooserForTileConfig(event, inputField) {
@@ -138,31 +143,21 @@ function openDropboxChooserForTileConfig(event, inputField) {
 
   const options = {
     success: function(files) {
-      const directLink = files[0].link;
+      const previewLink = files[0].link;
+      const directLink = transformToDirectLink(previewLink);
+      console.log('Preview Link:', previewLink);
+      console.log('Direct Link:', directLink);
       inputField.val(directLink);
     },
     cancel: function() {
       console.log('User canceled the chooser.');
     },
-    linkType: "direct",
+    linkType: "preview", // Use "preview" to get the preview link first
     multiselect: false,
     extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
   };
 
   Dropbox.choose(options);
-}
-
-
-// Function to inject the Dropbox Chooser button for scene creation in the sidebar
-function injectDropboxButton(html) {
-  const createSceneButton = html.find('button.create-document.create-entry');
-  if (createSceneButton.length && html.closest('#scenes').length) {
-    if (!createSceneButton.next('.dropbox-chooser').length) {
-      const dropboxButton = $(`<button class="dropbox-chooser"><i class="fab fa-dropbox"></i> Choose from Dropbox</button>`);
-      dropboxButton.on('click', openDropboxChooserForScene);
-      createSceneButton.after(dropboxButton);
-    }
-  }
 }
 
 // Function to open Dropbox Chooser for scene creation
@@ -175,14 +170,23 @@ function openDropboxChooserForScene() {
 
   const options = {
     success: async function(files) {
-      const directLink = files[0].link;
+      const previewLink = files[0].link;
+      const directLink = transformToDirectLink(previewLink);
+      const fileName = files[0].name;
+      console.log('Preview Link:', previewLink);
+      console.log('Direct Link:', directLink);
+      console.log('File Name:', fileName);
+
       const dimensions = await getDimensionsFromImage(directLink);
-      createSceneWithBackground(files[0].name, directLink, dimensions.width, dimensions.height);
+      console.log('Image Dimensions:', dimensions.width + 'x' + dimensions.height);
+
+      // Proceed with creating the scene
+      createSceneWithBackground(fileName, directLink, dimensions.width, dimensions.height);
     },
     cancel: function() {
       console.log('User canceled the chooser.');
     },
-    linkType: "direct",
+    linkType: "preview", // Use "preview" to get the preview link first
     multiselect: false,
     extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
   };
@@ -190,18 +194,6 @@ function openDropboxChooserForScene() {
   Dropbox.choose(options);
 }
 
-// Function to get dimensions from an image URL
-function getDimensionsFromImage(url) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = function() {
-      resolve({ width: this.width, height: this.height });
-    };
-    img.src = url;
-  });
-}
-
-// Function to create a scene in Foundry VTT using the selected file
 async function createSceneWithBackground(sceneName, backgroundUrl, width, height) {
   try {
     if (!width || !height) {
@@ -224,20 +216,16 @@ async function createSceneWithBackground(sceneName, backgroundUrl, width, height
     ui.notifications.error("Failed to create scene. Please check the console for details.");
   }
 }
-function injectDropboxButtonAmbientSound(html) {
-  const filePickerButton = html.find('button.file-picker[data-type="audio"]');
-  if (filePickerButton.length) {
-    const dropboxButton = $(`<button class="dropbox-audio-picker" title="Choose from Dropbox" tabindex="-1">
-      <i class="fab fa-dropbox"></i>
-    </button>`);
 
-    dropboxButton.on('click', (event) => openDropboxChooserForAudio(event, filePickerButton));
-
-    // Insert the Dropbox button before the file picker button
-    filePickerButton.before(dropboxButton);
-  }
+function getDimensionsFromImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = function() {
+      resolve({ width: this.width, height: this.height });
+    };
+    img.src = url;
+  });
 }
-
 // Function to open the Dropbox Chooser for audio files and set the selected file's URL
 function openDropboxChooserForAudio(event, picker) {
   event.preventDefault(); // Prevent default behavior which might close the window
@@ -250,36 +238,23 @@ function openDropboxChooserForAudio(event, picker) {
 
   const options = {
     success: async function(files) {
-      const directLink = files[0].link;
+      const previewLink = files[0].link;
+      const directLink = transformToDirectLink(previewLink);
+      console.log('Preview Link:', previewLink);
+      console.log('Direct Link:', directLink);
       const inputField = $(picker).closest('.form-fields').find('input[type="text"]');
       inputField.val(directLink);
     },
     cancel: function() {
       console.log('User canceled the chooser.');
     },
-    linkType: "direct",
+    linkType: "preview",  // Use "preview" to get the preview link first
     multiselect: false,
     extensions: ['.mp3', '.ogg', '.wav'], // Allow only audio files
   };
 
   // Open the Dropbox Chooser in a way that doesn't cause the parent window to lose focus
   Dropbox.choose(options);
-}
-
-// Function to inject Dropbox button into Playlist Config
-function injectDropboxButtonForPlaylistConfig(html) {
-  const filePickerButton = html.find('button.file-picker[data-type="folder"]');
-  if (filePickerButton.length) {
-    const dropboxButton = $(`<button class="dropbox-folder-picker" title="Choose from Dropbox" tabindex="-1">
-      <i class="fab fa-dropbox"></i>
-    </button>`);
-    
-    // Insert the Dropbox button before the file picker button
-    filePickerButton.before(dropboxButton);
-
-    // Add click event to open Dropbox Chooser
-    dropboxButton.on('click', (event) => openDropboxChooserForFolder(event, html));
-  }
 }
 
 // Function to open the Dropbox Chooser for folder selection
@@ -292,14 +267,19 @@ function openDropboxChooserForFolder(event, html) {
 
   const options = {
     success: function(files) {
-      console.log('Dropbox folder selected:', files);
+      files.forEach(file => {
+        const previewLink = file.link;
+        const directLink = transformToDirectLink(previewLink);
+        console.log('Preview Link:', previewLink);
+        console.log('Direct Link:', directLink);
+      });
       // Now populate the playlist with these files
       addTracksToPlaylist(html, files);
     },
     cancel: function() {
       console.log('User canceled the chooser.');
     },
-    linkType: "direct",  // Use direct link for audio files
+    linkType: "preview",  // Use "preview" to get the preview link first
     folderselect: false, // Don't allow folder selection, just files
     multiselect: true,   // Allow multiple file selection
     extensions: ['.mp3', '.wav', '.ogg']  // Audio file types
@@ -324,15 +304,17 @@ async function addTracksToPlaylist(html, files) {
   // Add each selected file as a new sound in the playlist
   for (const file of files) {
     try {
+      const previewLink = file.link;
+      const directLink = transformToDirectLink(previewLink);
       const soundData = {
         name: file.name,
-        path: file.link,
+        path: directLink,
         playing: false,  // Default to not playing
         repeat: false,   // Default to not repeating
         volume: 0.5      // Default volume
       };
       await playlist.createEmbeddedDocuments('PlaylistSound', [soundData]);
-      console.log(`Added ${file.name} to the playlist.`);
+      console.log(`Added ${file.name} to the playlist with link: ${directLink}`);
     } catch (error) {
       console.error('Failed to add track:', error);
       ui.notifications.error(`Failed to add ${file.name} to the playlist.`);
@@ -346,6 +328,34 @@ async function addTracksToPlaylist(html, files) {
 Hooks.on('renderPlaylistConfig', (app, html) => {
   injectDropboxButtonForPlaylistConfig(html);
 });
+
+// Function to inject Dropbox button into Playlist Config
+function injectDropboxButtonForPlaylistConfig(html) {
+  const filePickerButton = html.find('button.file-picker[data-type="folder"]');
+  if (filePickerButton.length) {
+    const dropboxButton = $(`<button class="dropbox-folder-picker" title="Choose from Dropbox" tabindex="-1">
+      <i class="fab fa-dropbox"></i>
+    </button>`);
+    
+    // Insert the Dropbox button before the file picker button
+    filePickerButton.before(dropboxButton);
+
+    // Add click event to open Dropbox Chooser
+    dropboxButton.on('click', (event) => openDropboxChooserForFolder(event, html));
+  }
+}
+
+// Function to inject the Dropbox Chooser button for scene creation in the sidebar
+function injectDropboxButton(html) {
+  const createSceneButton = html.find('button.create-document.create-entry');
+  if (createSceneButton.length && html.closest('#scenes').length) {
+    if (!createSceneButton.next('.dropbox-chooser').length) {
+      const dropboxButton = $(`<button class="dropbox-chooser"><i class="fab fa-dropbox"></i> Choose from Dropbox</button>`);
+      dropboxButton.on('click', openDropboxChooserForScene);
+      createSceneButton.after(dropboxButton);
+    }
+  }
+}
 
 // Function to load the Dropbox SDK
 function loadDropboxSDK(appKey) {
