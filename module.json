@@ -1,10 +1,10 @@
 {
   "id": "dropboxer",
   "title": "Dropboxer",
-  "description": "Integrate dropbox into foundry for the creation of scenes and tiles.",
-  "version": "1.0",
+  "description": "Integrate dropbox into foundry for the creation of scenes and tiles and sounds.",
+  "version": "1.1",
   "manifest": "https://github.com/tirzah2/dropboxer/releases/latest/download/module.json",
-  "download": "https://github.com/tirzah2/dropboxer/releases/download/1.0/module.zip",
+  "download": "https://github.com/tirzah2/dropboxer/releases/download/1.1/module.zip",
   "compatibility": {
     "minimum": 11,
     "verified": 11,
