@@ -127,7 +127,7 @@ function openDropboxChooserForFilePicker(event, inputField) {
     },
     linkType: "preview", // Use "preview" to get the preview link first
     multiselect: false,
-    extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    //extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
   };
 
   Dropbox.choose(options);

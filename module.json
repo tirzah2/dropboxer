@@ -3,8 +3,8 @@
   "title": "Dropboxer",
   "description": "Integrate dropbox into foundry for the creation of scenes and tiles and sounds.",
   "version": "1.2.1",
-  "manifest": "https://github.com/tirzah2/dropboxer/releases/latest/download/module.json",
-  "download": "https://github.com/tirzah2/dropboxer/releases/download/1.2.1/module.zip",
+  "old_manifest": "https://github.com/tirzah2/dropboxer/releases/latest/download/module.json",
+  "old_download": "https://github.com/tirzah2/dropboxer/releases/download/1.2.1/module.zip",
   "compatibility": {
     "minimum": 11,
     "verified": 11,
@@ -15,6 +15,11 @@
       "name": "Kaleth",
       "url": "",
       "discord": "DMKal"
+    },
+    {
+      "name": "Butt-Munch (forked)",
+      "discord": "butt.munch",
+      "flags": {}
     }
   ],
   "esmodules": [],
