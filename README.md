@@ -1,3 +1,6 @@
+This is a fork of the dropboxer module by tirah2. This removes the limitation of restricting the selection of specific filetypes, and allows all filetypes to be selected.
+
+------------------------------------
 
 Hi! 
 This is DMkal! If you like my little modules, please offer me a coffee, I would appreciate that a lot and motivate me to do many more modules and quality of life tools! Thank you very much!
